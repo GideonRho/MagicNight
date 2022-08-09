@@ -1,0 +1,23 @@
+@page "/Draft"
+@page "/Draft/{LobbyKey}"
+@using MagicNight.Models.Data
+@inherits LobbyBasePage
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Draft</MudText>
+    
+    <LobbyDisplayHandler Page="@this"/>
+
+    @if (InLobby && IsFinished)
+    {
+        <DraftDisplay Instance="LobbyInstance"/>
+    }
+    
+</MudContainer>
+
+@code {
+
+    public override Lobby.EType Type => Lobby.EType.Draft;
+    
+
+} 

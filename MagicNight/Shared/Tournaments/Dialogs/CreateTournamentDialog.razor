@@ -1,0 +1,27 @@
+@using MagicNight.Models.Database.Tournaments
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="Tournament.Name" Label="Name" Variant="Variant.Outlined"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Create">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    private Tournament Tournament { get; set; } = new();
+
+    private void Create()
+    {
+        MudDialog.Close(DialogResult.Ok(Tournament));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    
+}

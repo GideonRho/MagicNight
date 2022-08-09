@@ -1,0 +1,14 @@
+@using MagicNight.Models.Filters
+
+<MudCheckBox @bind-Checked="@Filter.White">White</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Blue">Blue</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Black">Black</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Red">Red</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Green">Green</MudCheckBox>
+
+@code {
+    
+    [Parameter]
+    public ColorFilter Filter { get; set; }
+
+}

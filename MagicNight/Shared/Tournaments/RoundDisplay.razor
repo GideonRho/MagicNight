@@ -1,0 +1,35 @@
+@using MagicNight.Models.Data.Tournaments
+@implements IDisposable
+
+<MudTable Items="Round.Entries">
+    <RowTemplate>
+        <MudTd>@context.SeedA</MudTd>
+        <MudTd>
+            <MudNumericField @bind-Value="@context.WinsA" Label="Wins" Variant="Variant.Outlined" Min="0"/>
+        </MudTd>
+        <MudTd>
+            <MudNumericField @bind-Value="@context.WinsB" Label="Wins" Variant="Variant.Outlined" Min="0"/>
+        </MudTd>
+        <MudTd>@context.SeedB</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    
+    [Parameter]
+    public Round Round { get; set; }
+    
+    private Action AsyncStateHasChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AsyncStateHasChanged = () => InvokeAsync(StateHasChanged);
+        Round.OnChange += AsyncStateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Round.OnChange -= AsyncStateHasChanged;
+    }
+
+}

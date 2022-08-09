@@ -1,0 +1,63 @@
+@page "/ManaBase"
+@inherits OwningComponentBase
+@inject CardService CardService
+@inject NavigationManager NavigationManager
+@inject StateContainer StateContainer;
+@using Microsoft.Extensions.DependencyInjection
+@inject ISnackbar SnackBar
+@inject DownloadService DownloadService
+@using MagicNight.Services
+@using MagicNight.Models.Filters
+@using MagicNight.States
+@using MagicNight.Models.Data
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Generator</MudText>
+    
+    <ColorSelectorDisplay Filter="@Filter.ColorFilter"/>
+    
+    <MudNumericField @bind-Value="@Filter.Lands" Label="Lands" Variant="Variant.Outlined" Min="0"/>
+    <MudNumericField @bind-Value="@Filter.BasicLands" Label="BasicLands" Variant="Variant.Outlined" Min="0" Max="@Filter.Lands"/>
+    <MudNumericField @bind-Value="@Filter.Artifacts2" Label="2 Mana Artifacts" Variant="Variant.Outlined" Min="0"/>
+    <MudNumericField @bind-Value="@Filter.Artifacts3" Label="3 Mana Artifacts" Variant="Variant.Outlined" Min="0"/>
+    <br/>
+    <MudButton Disabled="!IsValid" Variant="Variant.Filled" Color="Color.Primary" OnClick="@Generate">Generate</MudButton>
+    <MudButton Disabled="!CanDownload" Variant="Variant.Filled" Color="Color.Primary" Link="@FileLink" Target="_top">Download</MudButton>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <CardGalleryDisplay Cards="@Cards"/>
+</MudContainer>
+
+@code {
+    
+    private GenerateService GenerateService { get; set; }
+
+    private List<CardRender> Cards { get; set; } = new();
+    private ManaBaseFilter Filter { get; set; } = new();
+    private string FileLink { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        GenerateService = ScopedServices.GetRequiredService<GenerateService>();
+    }
+
+    private void Generate()
+    {
+        Cards = GenerateService
+            .ManaBase(Filter)
+            .Select(c => new CardRender(c, false))
+            .ToList();
+        FileLink = null;
+        var task = Save();
+    }
+
+    private async Task Save()
+    {
+        var name = await CardService.Save(Cards.Select(c => c.Card));
+        FileLink = DownloadService.TemporaryLink(name);
+        StateHasChanged();
+    }
+    
+    private bool IsValid => Filter.ColorFilter.TotalColors() > 0;
+    private bool CanDownload => Cards is {Count: > 0 };
+
+}

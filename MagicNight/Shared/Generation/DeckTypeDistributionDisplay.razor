@@ -1,0 +1,13 @@
+@using MagicNight.Models.Data.Generating
+
+<RandomIntField Name="Creatures" RandomInt="Distribution.Creatures"/>
+<RandomIntField Name="Non-Creatures" RandomInt="Distribution.NonCreatures"/>
+<RandomIntField Name="Lands" RandomInt="Distribution.Lands"/>
+<RandomIntField Name="Ramp" RandomInt="Distribution.Ramp"/>
+
+@code {
+    
+    [Parameter]
+    public DeckTypeDistribution Distribution { get; set; }
+    
+}

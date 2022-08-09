@@ -1,0 +1,21 @@
+@page "/Deck/{DeckId}"
+@using MagicNight.Models.Database.Decks
+@using MagicNight.Services
+@inject DeckService DeckService;
+
+<DeckDisplay Deck="@Deck" />
+
+@code {
+    
+    [Parameter]
+    public string DeckId { get; set; }
+    private Deck Deck { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Deck = await DeckService.Get(Id);
+    }
+
+    private int Id => int.Parse(DeckId);
+
+}

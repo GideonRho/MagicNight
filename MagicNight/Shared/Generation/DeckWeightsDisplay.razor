@@ -1,0 +1,12 @@
+@using MagicNight.Models.Data.Generating
+
+<RandomIntField Name="Minor Types" RandomInt="Weights.MinorTypes"/>
+<RandomIntField Name="Synergies" RandomInt="Weights.Synergies"/>
+<RandomIntField Name="Keywords" RandomInt="Weights.Keywords"/>
+
+@code {
+    
+    [Parameter]
+    public DeckWeights Weights { get; set; }
+    
+}

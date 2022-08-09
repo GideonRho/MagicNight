@@ -1,0 +1,148 @@
+@using MagicNight.Services
+@using MagicNight.Models.Database.Drafts
+@using MagicNight.Models.Database.Profiles
+@using MagicNight.Models.Data
+@using MagicNight.Models.Database.Drafts.Values
+@using Microsoft.EntityFrameworkCore
+@using MagicNight.Logic
+@using System.Threading
+@implements IDisposable
+@inject ProfileService ProfileService
+@inject LiveDraftService LiveDraftService
+@inject DownloadService DownloadService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h4" GutterBottom="true">Draft</MudText>
+    
+    <MudStack>
+        <MudChip Color="Color.Primary">@Timer</MudChip>
+    </MudStack>
+    
+    <MudGrid>
+
+        <MudItem xs="2">
+            <MudStack>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Advance">Advance</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Pause">Pause</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Resume">Resume</MudButton>
+                @if (HasDownload)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Link="@DownloadLink" Target="_top">Download</MudButton>
+                }
+            </MudStack>
+        </MudItem>
+
+
+        <MudItem xs="2">
+            <MudStack>
+                @foreach (var profileName in Instance.ActiveProfiles
+                    .Select(p => p.Name)
+                    .Distinct())
+                {
+                    <MudChip Color="Color.Info">@profileName</MudChip>
+                }
+
+                @foreach (var profile in Draft.Profiles
+                    .Where(p => Instance.ActiveProfiles.All(a => a != p.Profile)))
+                {
+                    <MudChip Color="Color.Default">@profile.Profile.Name</MudChip>
+                }
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <CardGalleryDisplay Cards="CardRenders" Action="(c) => OnPick(c)"/>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <CardGalleryDisplay Cards="PickedCardRenders"/>
+
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public string DraftId { get; set; }
+
+    private Profile Profile { get; set; }
+
+    private List<DraftPackCard> Cards { get; set; }
+    private List<DraftPackCard> PickedCards { get; set; }
+
+    private DraftInstance Instance { get; set; }
+    private int AutoRefreshTimer { get; set; }
+
+    private CancellationTokenSource CancelToken { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Profile = await ProfileService.Current();
+        Instance = LiveDraftService.Access(Id, Profile);
+        await Refresh(false);
+        var task = AutoRefresh();
+    }
+
+    private async Task Refresh(bool forceRefresh = true)
+    {
+        AutoRefreshTimer = Draft.Timer;
+        Cards = Draft.PickableCards(Profile).ToList();
+        PickedCards = Draft.PickedCards(Profile).ToList();
+        if (forceRefresh) StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Instance.Leave(Profile);
+        CancelToken.Cancel();
+        CancelToken.Dispose();
+    }
+
+    private async Task AutoRefresh()
+    {
+        while (!CancelToken.IsCancellationRequested)
+        {
+            await Task.Delay(500);
+            if (AutoRefreshTimer != Draft.Timer)
+            {
+                AutoRefreshTimer = Draft.Timer;
+                await Refresh();
+            }
+        }
+    }
+    
+    private async Task Advance()
+    {
+        Instance.Advance();
+        await Refresh();
+    }
+
+    private async Task Pause()
+    {
+        Instance.Pause();
+    }
+
+    private async Task Resume()
+    {
+        Instance.Resume();
+    }
+    
+    private async Task OnPick(CardRender cardRender)
+    {
+        var card = Cards.First(c => c.Card == cardRender.Card);
+        Instance.Pick(card);
+
+        await Refresh();
+    }
+
+    private Draft Draft => Instance.Draft;
+    private DraftProfile DraftProfile => Draft.Profiles.FirstOrDefault(p => p.Profile == Profile);
+
+    private IEnumerable<CardRender> CardRenders => Cards.Select(c => new CardRender(c.Card, false));
+    private IEnumerable<CardRender> PickedCardRenders => PickedCards.Select(c => new CardRender(c.Card, false));
+
+    private int Timer => Draft.PickTime - Draft.Timer;
+    private bool HasDownload => DraftProfile != null && DraftProfile.DeckId.HasValue;
+    private string DownloadLink => HasDownload ? DownloadService.DeckLink(DraftProfile.DeckId.Value) : "";
+    
+    private int Id => int.Parse(DraftId);
+
+}

@@ -1,0 +1,19 @@
+@using MagicNight.Models.Database.Profiles
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    <MudPaper Width="300px">
+        <MudList>
+            @foreach (var profile in Data)
+            {
+                <MudListItem Text="@profile.ToString()"/>
+            }
+        </MudList>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public IEnumerable<Profile> Data { get; set; }
+
+}

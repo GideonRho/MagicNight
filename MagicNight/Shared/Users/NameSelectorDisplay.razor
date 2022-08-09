@@ -1,0 +1,23 @@
+@page "/NameSelectorPage"
+@using MagicNight.States
+@inject StateContainer StateContainer
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    
+    <MudStack>
+        <MudChip Color="Color.Default">Select your username</MudChip>
+        <MudTextField @bind-Value="Name" Label="Name" Variant="Variant.Outlined"/>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@Apply">Select</MudButton>
+    </MudStack>
+</MudContainer>
+
+@code {
+    
+    private string Name { get; set; }
+
+    public void Apply()
+    {
+        StateContainer.GuestName = Name;
+    }
+    
+}

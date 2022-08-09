@@ -1,0 +1,50 @@
+@page "/Commanders"
+@attribute [Authorize(Roles = "admin")]
+@inherits OwningComponentBase
+@inject NavigationManager NavigationManager
+@inject CardService CardService
+@inject ISnackbar SnackBar
+@using MagicNight.Services
+@using Microsoft.EntityFrameworkCore
+@using MagicNight.Models.Data
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Commanders</MudText>
+    <MudPagination Variant="Variant.Filled" Count="PageCount" SelectedChanged="@ChangePage"/>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <CardGalleryDisplay Cards="Cards" Action="OnClick" FullSize="true"/>
+</MudContainer>
+
+@code {
+
+    private List<CardRender> Cards { get; set; } = new();
+    private int Page { get; set; } = 1;
+    private int PageCount { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        PageCount = CardService.CommanderPages(50);
+        await ChangePage(1);
+    }
+
+    private async Task Search()
+    {
+        Cards = await CardService
+            .Commanders(Page - 1, 50)
+            .Select(c => new CardRender(c, !c.IsCommander()))
+            .ToListAsync();
+    }
+
+    private async Task ChangePage(int page)
+    {
+        Page = page;
+        await Search();
+    }
+
+    private void OnClick(CardRender card)
+    {
+        CardService.SetCommander(card.Card, !card.Card.IsCommander());
+        card.Excluded = !card.Excluded;
+    }
+    
+}

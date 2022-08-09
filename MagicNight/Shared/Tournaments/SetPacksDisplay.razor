@@ -1,0 +1,19 @@
+@using MagicNight.Models.Data.Drafts
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    <MudPaper Width="300px">
+        <MudList>
+            @foreach (var pack in Data)
+            {
+                <MudListItem Text="@pack.ToString()"/>
+            }
+        </MudList>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public IEnumerable<PackType> Data { get; set; }
+    
+}

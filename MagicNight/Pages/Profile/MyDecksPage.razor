@@ -1,0 +1,27 @@
+@page "/MyDecks"
+@attribute [Authorize]
+@using MagicNight.Models.Database.Decks
+@using MagicNight.Models.Database.Profiles
+@using MagicNight.Services
+@using Microsoft.EntityFrameworkCore
+@inject DeckService DeckService;
+@inject ProfileService ProfileService;
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">My Decks</MudText>
+    <DeckListDisplay Decks="Decks" Profile="Profile"></DeckListDisplay>
+</MudContainer>
+@code {
+    
+    private Profile Profile { get; set; }
+    private List<Deck> Decks { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Profile = await ProfileService.Current();
+        Decks = await DeckService.ForProfile(Profile)
+            .Where(d => d.Type == Deck.EType.Basic)
+            .ToListAsync();
+    }
+
+}

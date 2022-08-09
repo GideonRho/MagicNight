@@ -1,0 +1,27 @@
+@using MagicNight.Models.Types
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudSelect Label="@Name" @bind-Value="@RandomInt.Type" Variant="Variant.Outlined">
+            @foreach (RandomInt.EType item in Enum.GetValues(typeof(RandomInt.EType)))
+            {
+                <MudSelectItem Value="@item">@item</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+    @if (RandomInt.Type == RandomInt.EType.Value)
+    {
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="@RandomInt.Value" Label="@Name" Variant="Variant.Outlined" Min="0"/>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public RandomInt RandomInt { get; set; }
+    
+}

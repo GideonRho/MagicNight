@@ -1,0 +1,40 @@
+@page "/LobbyMenuDisplay"
+@using MagicNight.States
+@using MagicNight.Services
+@using MagicNight.Models.Data
+@inject StateContainer StateContainer
+@inject LobbyService LobbyService;
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    
+    <MudStack>
+        <MudChip Color="Color.Default">Choose a lobby</MudChip>
+        <MudTextField @bind-Value="Key" Label="Key" Variant="Variant.Outlined"/>
+        <MudStack Row="true">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@OnJoin">Join</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@OnHost">Host</MudButton>
+        </MudStack>
+    </MudStack>
+    
+    
+    
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public Lobby.EType Type { get; set; }
+    
+    private string Key { get; set; }
+    
+    private void OnJoin()
+    {
+        StateContainer.Join(LobbyService.Access(Key));
+    }
+
+    private void OnHost()
+    {
+        StateContainer.Join(LobbyService.Host(Type));
+    }
+    
+}

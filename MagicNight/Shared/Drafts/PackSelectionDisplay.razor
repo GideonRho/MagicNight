@@ -1,0 +1,33 @@
+@using MagicNight.Models.Data.Drafts
+@using MagicNight.Services
+@inject PackService PackService
+
+<MudNumericField @bind-Value="@Data.PickTime" Label="Pick Time" Variant="Variant.Outlined" Min="15"/>
+
+<MudTable Items="Data.Packs">
+    <RowTemplate>
+        <MudTd>
+            <MudSelect Label="Pack" @bind-Value="@context.PackType" T="PackType">
+                @foreach (var packType in PackService.All)
+                {
+                    <MudSelectItem Value="packType"/>
+                }
+            </MudSelect>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    
+    [Parameter]
+    public CreateDraftData Data { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var type = PackService.All.First();
+        Data.Add(type);
+        Data.Add(type);
+        Data.Add(type);
+    }
+
+}

@@ -1,0 +1,32 @@
+@using MagicNight.Models.Database
+@using MagicNight.Models.Database.Cards
+@using MagicNight.Models.Data
+
+@if (Cards != null)
+{
+@foreach (var card in Cards)
+{
+    <img src="@Image(card)" width="@Width" height="@Height" class="@card.CssClass()" @onclick="() => OnClick(card)" alt="@card.Card.Name">
+}
+}
+
+@code {
+    
+    [Parameter]
+    public IEnumerable<CardRender> Cards { get; set; }
+    [Parameter]
+    public Action<CardRender> Action { get; set; }
+    [Parameter]
+    public bool FullSize { get; set; }
+
+    private void OnClick(CardRender card)
+    {
+        Action?.Invoke(card);
+    }
+
+    private string Image(CardRender card) => FullSize ? card.Card.Image : card.Card.Thumbnail;
+    
+    private int Width => FullSize ? 292 : 146;
+    private int Height => FullSize ? 408 : 204;
+
+}

@@ -1,0 +1,42 @@
+@using MagicNight.Models.Data.Tournaments
+
+<MudTable Items="Standings">
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Wins</MudTh>
+        <MudTh>Loses</MudTh>
+        <MudTh>Buchholz</MudTh>
+        <MudTh>Points</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Name</MudTd>
+        <MudTd>@context.Wins</MudTd>
+        <MudTd>@context.Loses</MudTd>
+        <MudTd>@context.Buchholz</MudTd>
+        <MudTd>@context.Points</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    
+    [Parameter]
+    public TournamentData Data { get; set; }
+    
+    private Action AsyncStateHasChanged { get; set; }
+
+    private IEnumerable<StandingEntry> Standings => StandingEntry
+        .ForRounds(Data.Rounds)
+        .OrderByDescending(e => e.OrderIndex);
+
+    protected override void OnInitialized()
+    {
+        AsyncStateHasChanged = () => InvokeAsync(StateHasChanged);
+        Data.OnChange += AsyncStateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Data.OnChange -= AsyncStateHasChanged;
+    }
+    
+}

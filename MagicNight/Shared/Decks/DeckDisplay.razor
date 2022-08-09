@@ -1,0 +1,17 @@
+@using MagicNight.Models.Database.Decks
+@using MagicNight.Models.Data
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h4" GutterBottom="true">@Deck.Name</MudText>
+    <CardGalleryDisplay Cards="@Cards" />
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public Deck Deck { get; set; }
+
+    private IEnumerable<CardRender> Cards 
+        => Deck.Cards.Select(c => new CardRender(c.Card, false));
+
+}

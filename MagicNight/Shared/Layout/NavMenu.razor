@@ -1,0 +1,50 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+
+    <AuthorizeView>
+        <MudNavGroup Title="Profile" Icon="@Icons.Material.Filled.Person" @bind-Expanded="_profileIsExpanded">
+            <MudNavLink Href="/MyDecks" Match="NavLinkMatch.Prefix">Decks</MudNavLink>
+        </MudNavGroup>
+    </AuthorizeView>
+
+    <MudNavGroup Title="Tournaments" Icon="@Icons.Material.Filled.AccountBalance" @bind-Expanded="_tournamentsIsExpanded">
+        <MudNavLink Href="/Draft" Match="NavLinkMatch.Prefix">Draft</MudNavLink>
+        <MudNavLink Href="/Tournament" Match="NavLinkMatch.Prefix">Overview</MudNavLink>
+    </MudNavGroup>
+    
+    <AuthorizeView Roles="admin">
+        
+        <MudNavGroup Title="Administration" Icon="@Icons.Material.Filled.AdminPanelSettings" @bind-Expanded="_adminIsExpanded">
+            <MudNavLink Href="/Admin" Match="NavLinkMatch.Prefix">General</MudNavLink>
+            <MudNavLink Href="/AdminProfiles" Match="NavLinkMatch.Prefix">Profiles</MudNavLink>
+            <MudNavLink Href="/AdminAccounts" Match="NavLinkMatch.Prefix">Accounts</MudNavLink>
+        </MudNavGroup>
+
+        <MudNavGroup Title="Database" Icon="@Icons.Material.Filled.CreditCard" @bind-Expanded="_databaseIsExpanded">
+            <MudNavLink Href="/Commanders" Match="NavLinkMatch.Prefix">Commanders</MudNavLink>
+            <MudNavLink Href="/Sets" Match="NavLinkMatch.Prefix">Sets</MudNavLink>
+        </MudNavGroup>
+
+    </AuthorizeView>
+
+
+    <MudNavGroup Title="Rolls" Icon="@Icons.Material.Filled.Help" @bind-Expanded="_rollIsExpanded">
+        <MudNavLink Href="/SetRoll" Match="NavLinkMatch.Prefix">Roll Set</MudNavLink>
+        <MudNavLink Href="/CommanderRoll" Match="NavLinkMatch.Prefix">Commander</MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Generation" Icon="@Icons.Material.Filled.Create" @bind-Expanded="_generationIsExpanded">
+        <MudNavLink Href="/ManaBase" Match="NavLinkMatch.Prefix">Mana</MudNavLink>
+        <MudNavLink Href="/EdhGen" Match="NavLinkMatch.Prefix">Edh</MudNavLink>
+    </MudNavGroup>
+
+
+</MudNavMenu>
+
+@code{
+    private bool _profileIsExpanded = false;
+    private bool _adminIsExpanded = false;
+    private bool _databaseIsExpanded = false;
+    private bool _tournamentsIsExpanded = false;
+    private bool _rollIsExpanded = false;
+    private bool _generationIsExpanded = false;
+}

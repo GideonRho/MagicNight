@@ -1,0 +1,23 @@
+@using MagicNight.Models.Database.Tournaments
+
+<MudTr>
+	<td colspan="5">
+	<MudCard Elevation="0">
+		<MudCardHeader>
+			<CardHeaderContent>
+				<MudText Typo="Typo.body1">
+					<strong>@Match.PlayerA.Name</strong>
+				</MudText>
+			</CardHeaderContent>
+		</MudCardHeader>
+		<MudCardContent Class="pa-0">
+			
+		</MudCardContent>
+	</MudCard>
+	</td>
+</MudTr>
+
+@code {
+    [Parameter]
+    public Match Match { get; set; }
+}

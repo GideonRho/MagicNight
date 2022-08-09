@@ -1,0 +1,12 @@
+@using MagicNight.Models.Data.Generating
+
+<RandomIntField Name="Low" RandomInt="Curve.Low"/>
+<RandomIntField Name="Medium" RandomInt="Curve.Medium"/>
+<RandomIntField Name="High" RandomInt="Curve.High"/>
+
+@code {
+    
+    [Parameter]
+    public DeckCurve Curve { get; set; }
+    
+}

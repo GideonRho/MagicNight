@@ -1,0 +1,25 @@
+@using MagicNight.Models.Data.Tournaments
+
+<MudTabs>
+    
+    <MudTabPanel Text="Standings">
+        <StandingDisplay Data="Data"/>
+    </MudTabPanel>
+    
+    @for (var i = 0; i < Data.Rounds.Count; i++)
+    {
+        var round = Data.Rounds[i];
+        <MudTabPanel Text="@Name(round, i)">
+            <RoundDisplay Round="round"/>
+        </MudTabPanel>
+    }
+</MudTabs>
+
+@code {
+    
+    [Parameter]
+    public TournamentData Data { get; set; }
+
+    private string Name(Round round, int i) => $"Round {i +1}";
+
+}

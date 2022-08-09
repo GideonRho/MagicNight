@@ -1,0 +1,26 @@
+﻿@using MagicNight.Services
+@using MagicNight.Models.Database.Profiles
+@inject ProfileService ProfileService
+
+<AuthorizeView>
+    <Authorized>
+        <MudText>@Profile.Name</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" Color="Color.Inherit" Link="Identity/Account/Manage"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Link="Identity/Account/LogOut"/>
+    </Authorized>
+    <NotAuthorized>
+        <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" Link="Identity/Account/Login"/>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code
+{
+    
+    private Profile Profile { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Profile = await ProfileService.Current();
+    }
+    
+}

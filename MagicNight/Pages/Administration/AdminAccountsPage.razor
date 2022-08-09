@@ -1,0 +1,84 @@
+@page "/AdminAccounts"
+@attribute [Authorize(Roles = "admin")]
+@inherits OwningComponentBase
+@using MagicNight.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using MagicNight.Models.Data
+@inject UserService UserService;
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Accounts</MudText>
+    
+    <MudTable Items="Users">
+        <RowTemplate>
+            <MudTd>@context.User.UserName</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Filled" Color="@RoleColor(context)" OnClick="() => ToggleAdmin(context)">@RoleString(context)</MudButton>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteDialog(context.User)"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <MudTextField @bind-Value="Name" Label="Name" Variant="Variant.Outlined" />
+    <MudTextField @bind-Value="Password" InputType="@InputType.Password" Label="Password" Variant="Variant.Outlined" />
+    <br/>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@CreateAccount">Create</MudButton>
+</MudContainer>
+
+@code {
+
+    private string Name { get; set; }
+    public string Password { get; set; } 
+    
+    private List<UserWithRoles> Users { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+    private async Task Refresh()
+    {
+        Users =  await UserService.UsersWithRoles();
+        StateHasChanged();;
+    }
+
+    private async Task CreateAccount()
+    {
+        await UserService.Create(Name,Password);
+        Name = "";
+        Password = "";
+        await Refresh();
+    }
+    
+    private async Task DeleteUser(IdentityUser user)
+    {
+        await UserService.Delete(user);
+    }
+
+    private async Task ToggleAdmin(UserWithRoles user)
+    {
+        if (user.IsAdmin) await UserService.RevokeAdmin(user.User);
+        else await UserService.GiveAdmin(user.User);
+        await Refresh();
+    }
+    
+    private async void DeleteDialog(IdentityUser user)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            $"Delete {user.UserName}", 
+            "Deleting can not be undone!", 
+            yesText:"Delete!", cancelText:"Cancel");
+        if (result is true)
+            await DeleteUser(user);
+        await Refresh();
+    }
+
+    private static Color RoleColor(UserWithRoles user) => user.IsAdmin ? Color.Success : Color.Warning;
+    private static string RoleString(UserWithRoles user) => user.IsAdmin ? "Admin" : "User";
+
+}

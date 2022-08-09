@@ -1,0 +1,16 @@
+@using MagicNight.Models.Filters
+
+<MudCheckBox @bind-Checked="@Filter.Land">Land</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Creature">Creature</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Artifact">Artifact</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Enchantment">Enchantment</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Planeswalker">Planeswalker</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Sorcery">Sorcery</MudCheckBox>
+<MudCheckBox @bind-Checked="@Filter.Legendary">Legendary</MudCheckBox>
+
+@code {
+    
+    [Parameter]
+    public CardTypeFilter Filter { get; set; }
+    
+}

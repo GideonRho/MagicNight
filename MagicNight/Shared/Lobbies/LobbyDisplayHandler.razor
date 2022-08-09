@@ -1,0 +1,27 @@
+@using MagicNight.Models.Data
+@if (!HasName && !IsFinished)
+{
+    <NameSelectorDisplay/>
+}
+
+@if (HasName && !InLobby)
+{
+    <LobbyMenuDisplay Type="@Type"/>
+}
+
+@if ((HasName || IsFinished) && InLobby)
+{
+    <LobbyDisplay Type="@Type"/>
+}
+
+@code {
+    
+    [Parameter]
+    public LobbyBasePage Page { get; set; }
+
+    private Lobby.EType Type => Page.Type;
+    private bool HasName => Page.HasName;
+    private bool InLobby => Page.InLobby;
+    private bool IsFinished => Page.IsFinished;
+
+}

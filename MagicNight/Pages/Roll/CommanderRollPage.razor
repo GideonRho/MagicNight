@@ -1,0 +1,52 @@
+@page "/CommanderRoll"
+@page "/CommanderRoll/{LobbyKey}"
+@inherits LobbyBasePage
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Rolls
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Roll Commander</MudText>
+    
+    <LobbyDisplayHandler Page="@this"/>
+
+    @if (InLobby && IsFinished)
+    {
+        <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+        
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+
+            @foreach (var roll in Data.Rolls)
+            {
+                <MudTabPanel Text="@roll.User">
+                    @foreach (var entry in roll.Entries)
+                    {
+                        <div class="card">
+                            <img src="@entry.Commander.Image" class="fullCard" alt="@entry.Commander.Name"/>
+                            @if (entry.Partner != null)
+                            {
+                                <img src="@entry.Partner.Image" class="img-top fullCard" alt="@entry.Partner.Name"/>
+                            }
+                        </div>
+                    }
+                    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => Reroll(roll.User)">Reroll</MudButton>
+                </MudTabPanel>
+            }
+            
+        </MudTabs>
+    }
+    
+</MudContainer>
+
+@code {
+
+    public override Lobby.EType Type => Lobby.EType.Commander;
+
+    private CommanderRollLobbyData Data => LobbyInstance.CommanderData;
+    
+    private void Reroll(string user)
+    {
+        LobbyInstance.Reroll(user);
+    }
+    
+} 

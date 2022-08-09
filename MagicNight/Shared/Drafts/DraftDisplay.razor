@@ -1,0 +1,101 @@
+@using MagicNight.Logic
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Drafts
+@using MagicNight.Models.Database.Cards
+@using MagicNight.Models.Database.Drafts
+@using MagicNight.Services
+@using MagicNight.States
+@implements IDisposable;
+@inject StateContainer StateContainer;
+@inject DownloadService DownloadService;
+
+<MudStack>
+    <MudChip Color="Color.Primary">@Timer</MudChip>
+</MudStack>
+
+<MudGrid>
+
+    <MudItem xs="2">
+        <MudStack>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Advance">Advance</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Pause">Pause</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Resume">Resume</MudButton>
+            @if (HasDownload)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Success" Link="@DownloadLink" Target="_top">Download</MudButton>
+            }
+        </MudStack>
+    </MudItem>
+
+
+    <MudItem xs="2">
+        <MudStack>
+            @foreach (var user in Users)
+            {
+                <MudChip Color="Color.Info">@user</MudChip>
+            }
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+<MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+<CardGalleryDisplay Cards="CardRenders" Action="(c) => OnPick(c.Card)"/>
+<MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+<CardGalleryDisplay Cards="PickedCardRenders"/>
+
+@code {
+    
+    [Parameter]
+    public LobbyInstance Instance { get; set; }
+    
+    private Action AsyncStateHasChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AsyncStateHasChanged = () => InvokeAsync(StateHasChanged);
+        LocalPlayer.OnChange += AsyncStateHasChanged;
+        Data.OnChange += AsyncStateHasChanged;
+    }
+    
+    public void Dispose()
+    {
+        LocalPlayer.OnChange -= AsyncStateHasChanged;
+        Data.OnChange -= AsyncStateHasChanged;
+    }
+
+    private void Advance()
+    {
+        Data.Advance();
+    }
+
+    private void Pause()
+    {
+        Data.Pause();
+    }
+
+    private void Resume()
+    {
+        Data.Resume();
+    }
+
+    private void OnPick(Card card)
+    {
+        LocalPlayer.Pick(card);
+    }
+    
+    private IEnumerable<CardRender> CardRenders => LocalPlayer.Current.Cards
+        .Select(c => new CardRender(c, false));
+    private IEnumerable<CardRender> PickedCardRenders => LocalPlayer.Picks
+        .Select(c => new CardRender(c, false));
+
+    private List<string> Users => Lobby.Users;
+    private Player LocalPlayer => Data.Players.FirstOrDefault(p => p.Name == StateContainer.GuestName);
+    
+    private bool HasDownload => LocalPlayer.Deck != null;
+    private string DownloadLink => DownloadService.DeckLink(LocalPlayer.Deck.Id);
+    
+    private DraftData Data => Instance.DraftData;
+    private Lobby Lobby => Instance.Lobby;
+    private int Timer => Data.RoundTime - Data.Timer;
+
+}

@@ -1,0 +1,141 @@
+@page "/SetRoll"
+@attribute [Authorize]
+@using MagicNight.Models.Database.Rolls
+@using MagicNight.Services
+@using MagicNight.Migrations
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Rolls
+@using MagicNight.Models.Database.Rolls.Values
+@using Microsoft.EntityFrameworkCore
+@inject IDialogService DialogService;
+@inject SetService SetService;
+@inject RollService RollService;
+@inject DownloadService DownloadService;
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Set Roll</MudText>
+
+    <MudTable Items="SetRolls" Hover="true" T="SetRoll" OnRowClick="@RowClicked">
+        <RowTemplate>
+            <MudTd>@context.DateTime</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                               OnClick="() => DeleteDialog(context)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    
+    @if (Selection != null)
+    {
+        <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+        
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            @foreach (var entry in Selection.Entries)
+            {
+                <MudTabPanel Text="@entry.Profile.Name">
+
+                    <MudTable Items="@Selection.Entries.Where(e => e == @entry)">
+                        <RowTemplate>
+                            <MudTd>
+                                <img src="@entry.Set.Logo" width="400"/>
+                            </MudTd>
+                            <MudTd>
+                                <MudText>@entry.Set.Name</MudText>
+                            </MudTd>
+                            <MudTd>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                           Link="@DownloadLink(@entry)" Target="_top">
+                                    Download
+                                </MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                    
+                </MudTabPanel>
+            }
+        </MudTabs>
+        
+    }
+    
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreate">Create</MudButton>
+    @if (TotalPacks > 0)
+    {
+        <MudProgressLinear Color="Color.Primary" Striped="true" Size="Size.Large" Value="@Progress" Class="my-7"/>
+    }
+    
+</MudContainer>
+
+@code {
+    
+    private List<SetRoll> SetRolls { get; set; }
+
+    private SetRoll Selection { get; set; }
+    
+    private int GeneratedPacks { get; set; }
+    private int TotalPacks { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh(false);
+    }
+
+    private async Task Refresh(bool forceChange = true)
+    {
+        SetRolls = await RollService.AllSetRolls
+            .OrderBy(r => r.DateTime)
+            .ToListAsync();
+        if (forceChange) StateHasChanged();
+    }
+    
+    private async void OnCreate()
+    {
+        var dialog = DialogService.Show<CreateSetRollDialog>("Create Set Roll");
+        var result = await dialog.Result;
+        
+        if (result.Cancelled) return;
+
+        var setRoll = (CreateSetRoll)result.Data;
+        if (setRoll == null) return;
+
+        GeneratedPacks = 0;
+        TotalPacks = setRoll.Packs * setRoll.SetRoll.Entries.Count;
+        
+        await RollService.CreateSetRoll(setRoll.SetRoll, setRoll.Packs, ProgressCallback);
+        TotalPacks = 0;
+        await Refresh();
+    }
+
+    private void ProgressCallback(int i)
+    {
+        GeneratedPacks++;
+        StateHasChanged();
+    }
+    
+    private async void DeleteDialog(SetRoll data)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            $"Delete {data.DateTime}", 
+            "Deleting can not be undone!", 
+            yesText:"Delete!", cancelText:"Cancel");
+        if (result is true)
+            await DeleteData(data);
+        await Refresh();
+    }
+    
+    private async Task DeleteData(SetRoll data)
+    {
+        await RollService.Delete(data);
+    }
+    
+    private void RowClicked(TableRowClickEventArgs<SetRoll> row)
+    {
+        Selection = row.Item;
+        StateHasChanged();
+    }
+
+    private string DownloadLink(SetRollEntry entry) => DownloadService.DeckLink(entry.Deck.Id);
+    private int Progress => TotalPacks < 0 ? 0 : (GeneratedPacks * 100) / TotalPacks;
+}

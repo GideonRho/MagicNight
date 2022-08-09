@@ -1,0 +1,67 @@
+@page "/Admin"
+@attribute [Authorize(Roles = "admin")]
+@inherits OwningComponentBase
+@inject NavigationManager NavigationManager
+@using Microsoft.Extensions.DependencyInjection
+@inject ISnackbar SnackBar
+@using MagicNight.Services
+@inject SetService SetService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Administration</MudText>
+    
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ImportCards">Import card database</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ReloadCards">Reload card database</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SetCommanders">Set Commanders</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@BuildPartners">Build Partners</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ImportSets">Import Sets</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@LinkSetCards">Link Set Cards</MudButton>
+    
+</MudContainer>
+
+@code {
+    
+    private CardService CardService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CardService = ScopedServices.GetRequiredService<CardService>();
+    }
+
+    private async Task LinkSetCards()
+    {
+        await SetService.LinkCards();
+        SnackBar.Add("Cards have been linked!", Severity.Success);
+    }
+    
+    private async Task ImportSets()
+    {
+        await SetService.ImportSets();
+        SnackBar.Add("Sets have been imported!", Severity.Success);
+    }
+    
+    private async Task BuildPartners()
+    {
+        await CardService.BuildPartners();
+        SnackBar.Add("Partners have been build!", Severity.Success);
+    }
+
+    private async Task ReloadCards()
+    {
+        await CardService.ReloadCards();
+        SnackBar.Add("All cards have been reloaded!", Severity.Success);
+    }
+    
+    private async Task ImportCards()
+    {
+        await CardService.ImportCards();
+        SnackBar.Add("All cards have been imported!", Severity.Success);
+    }
+
+    private async Task SetCommanders()
+    {
+        await CardService.SetAllCommanders();
+        SnackBar.Add("Commanders have been set!", Severity.Success);
+    }
+
+}

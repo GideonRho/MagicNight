@@ -1,0 +1,31 @@
+@page "/Tournament"
+@page "/Tournament/{LobbyKey}"
+@inherits LobbyBasePage
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Tournaments
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Tournament</MudText>
+    
+    <LobbyDisplayHandler Page="@this"/>
+
+    @if (InLobby && IsFinished)
+    {
+        <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+        
+        @if (Data.Type == TournamentData.EType.RoundRobin)
+        {
+            <RoundRobinDisplay Data="Data"/>
+        }
+        
+    }
+    
+</MudContainer>
+
+@code {
+
+    public override Lobby.EType Type => Lobby.EType.Tournament;
+
+    private TournamentData Data => LobbyInstance.TournamentData;
+
+}

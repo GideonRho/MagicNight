@@ -1,0 +1,46 @@
+@using MagicNight.Models.Database.Rolls
+@using MagicNight.Models.Database.Tournaments
+@using MagicNight.Services
+@using Microsoft.AspNetCore.Components
+@using MagicNight.Models.Database.Profiles
+@using Microsoft.EntityFrameworkCore
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Rolls
+@using MagicNight.Models.Database.Rolls.Values
+@inject ProfileService ProfileService;
+
+<MudDialog>
+    <DialogContent>
+        @foreach (var profile in Data.Profiles)
+        {
+            <MudCheckBox @bind-Checked="@profile.IsSelected" Label="@profile.Profile.Name"/>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Create">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    private CreateCommanderRoll Data { get;} = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Data.Profiles = await ProfileService.Active
+            .Select(p => new ProfileSelection(p, false))
+            .ToListAsync();
+    }
+
+    private void Create()
+    {
+        MudDialog.Close(DialogResult.Ok(Data));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+}

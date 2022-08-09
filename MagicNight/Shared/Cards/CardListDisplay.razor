@@ -1,0 +1,19 @@
+@using MagicNight.Models.Database
+@using MagicNight.Models.Database.Cards
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudExpansionPanels MultiExpansion="true">
+        @foreach (var card in Cards)
+        {
+            <MudExpansionPanel Text="@card.Name">
+                <MudLink Href="@card.Uri">Scryfall URI</MudLink>
+                <img src="@card.Image"/>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public IEnumerable<Card> Cards { get; set; }
+}

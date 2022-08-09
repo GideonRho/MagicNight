@@ -1,0 +1,48 @@
+@using MagicNight.Services
+@using MagicNight.Models.Database.Tournaments
+@using Microsoft.EntityFrameworkCore
+@inject TournamentService TournamentService;
+@inject IDialogService DialogService;
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    
+    <MudTable Items="Tournaments" Hover="true" T="Tournament" OnRowClick="@RowClicked">
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.Type.ToString()</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnCreate">Create</MudButton>
+
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public List<Tournament> Tournaments { get; set; }
+
+    private async void OnCreate()
+    {
+        var dialog = DialogService.Show<CreateTournamentDialog>("Create Tournament");
+        var result = await dialog.Result;
+        
+        if (result.Cancelled) return;
+
+        var tournament = (Tournament)result.Data;
+        if (tournament == null) return;
+        
+        await TournamentService.Create(tournament);
+        Tournaments.Add(tournament);
+        StateHasChanged();
+    }
+    
+    private void RowClicked(TableRowClickEventArgs<Tournament> row)
+    {
+        NavigationManager.NavigateTo(Link(row.Item));
+    }
+
+    private string Link(Tournament tournament) => $"Tournament/{tournament.Id}";}

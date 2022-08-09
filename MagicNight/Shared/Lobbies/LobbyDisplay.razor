@@ -1,0 +1,102 @@
+@page "/LobbyDisplay"
+@implements IDisposable
+@using MagicNight.Models.Data
+@using MagicNight.Logic
+@using MagicNight.Services
+@using MagicNight.States
+@using System.Text
+@inject LobbyService LobbyService;
+@inject StateContainer StateContainer;
+
+<MudContainer MaxWidth="MaxWidth.Small">
+
+    <MudStack>
+        
+        <MudStack Row="true">
+            <MudChip Color="Color.Default">
+                <MudLink Href="@LobbyLink">Lobby Link</MudLink>
+            </MudChip>
+            <MudChip Color="Color.Default">
+                <MudLink Href="@PresetLink">Preset Link</MudLink>
+            </MudChip>
+        </MudStack>
+
+        @if (!Lobby.IsFinished)
+        {
+            <MudChip Color="Color.Default">Add users</MudChip>
+
+            <MudTable Items="Lobby.Users" Hover="true" T="string">
+                <RowTemplate>
+                    <MudTd>@context</MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            <MudStack Row="true">
+                <MudTextField @bind-Value="Name" Label="Name" Variant="Variant.Outlined"/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@OnAdd">Add</MudButton>
+            </MudStack>
+
+            @if (Type == Lobby.EType.Draft)
+            {
+                <PackSelectionDisplay Data="Instance.CreateDraftData"/>
+            }
+            
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@OnFinish">Finish</MudButton>
+        }
+
+    </MudStack>
+    
+</MudContainer>
+
+@code {
+
+    [Parameter]
+    public Lobby.EType Type { get; set; }
+
+    private LobbyInstance Instance => StateContainer.LobbyInstance(Type);
+    private Lobby Lobby => Instance.Lobby;
+    
+    private string Name { get; set; }
+    private Action AsyncStateHasChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AsyncStateHasChanged = () => InvokeAsync(StateHasChanged);
+        Instance.OnChange += AsyncStateHasChanged;
+        HandleAutoJoin();
+    }
+
+    private void HandleAutoJoin()
+    {
+        if (!Lobby.Users.Contains(StateContainer.GuestName)) Instance.Add(StateContainer.GuestName);
+    }
+    
+    public void Dispose()
+    {
+        Instance.OnChange -= AsyncStateHasChanged;
+    }
+
+    private void OnAdd()
+    {
+        var name = Name;
+        Name = "";
+        Instance.Add(name);
+    }
+    
+    private async void OnFinish()
+    {
+        await Instance.Finish();
+    }
+
+    private string NavigationPath()
+    {
+        if (Type == Lobby.EType.Commander) return "CommanderRoll";
+        return Type.ToString();
+    }
+
+    private string UserPreset => string.Join('&', Lobby.Users.Select(u => $"u={u}"));
+
+    private string LobbyLink => $"{NavigationPath()}/{Lobby.Key}";
+    private string PresetLink => $"{NavigationPath()}?{UserPreset}";
+
+}

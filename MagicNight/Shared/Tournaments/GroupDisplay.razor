@@ -1,0 +1,18 @@
+@page "/GroupDisplay"
+@using MagicNight.Models.Database.Tournaments
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudTable Items="@Group.Entries.OrderBy(e => e.Rank)" >
+        <RowTemplate>
+            <MudTd DataLabel="Rank">@context.Rank.</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Results">@context.Wins-@context.Loses</MudTd>
+            <MudTd DataLabel="Buchholz">@context.Buchholz</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public Group Group { get; set; }
+}

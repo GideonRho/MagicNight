@@ -1,0 +1,65 @@
+@inject CardService CardService;
+@using MagicNight.Models.Database
+@using MagicNight.Models.Database.Cards
+@using MagicNight.Models.Filters
+@using MagicNight.Services
+@using Microsoft.EntityFrameworkCore
+@using MagicNight.Models.Data
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+
+        <MudTabPanel Text="Colors">
+            <ColorSelectorDisplay Filter="@Filter.ColorFilter"/>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Types">
+            <CardTypeSelectorDisplay Filter="@Filter.TypeFilter"/>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Cost">
+            <MudNumericField @bind-Value="@Filter.MinCost" Label="Minimum Cost" Variant="Variant.Outlined" Max="@Filter.MaxCost"/>
+            <MudNumericField @bind-Value="@Filter.MaxCost" Label="Maximum Cost" Variant="Variant.Outlined" Min="@Filter.MinCost"/>
+        </MudTabPanel>
+        
+        <MudTabPanel Text="Stats">
+            <MudNumericField @bind-Value="@Filter.MinPower" Label="Minimum Power" Variant="Variant.Outlined" Max="@Filter.MaxPower"/>   
+            <MudNumericField @bind-Value="@Filter.MaxPower" Label="Maximum Power" Variant="Variant.Outlined" Min="@Filter.MinPower"/>
+            <MudNumericField @bind-Value="@Filter.MinToughness" Label="Minimum Toughness" Variant="Variant.Outlined" Max="@Filter.MaxToughness"/>   
+            <MudNumericField @bind-Value="@Filter.MaxToughness" Label="Maximum Toughness" Variant="Variant.Outlined" Min="@Filter.MinToughness"/>
+        </MudTabPanel>
+
+    </MudTabs>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Search">Search</MudButton>
+    <br/>
+    <MudPagination Variant="Variant.Filled" BoundaryCount="0" MiddleCount="1" Count="Page + 1" SelectedChanged="@ChangePage"/>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+</MudContainer>
+
+<CardGalleryDisplay Cards="@Cards"/>
+
+@code {
+
+    private CardFilter Filter { get; set; } = new();
+    private int Page { get; set; } = 1;
+
+    private List<CardRender> Cards { get; set; } = new();
+
+    private async Task Search()
+    {
+        Cards = await CardService
+            .Search(Filter, 50, Page -1)
+            .Select(c => new CardRender(c, false))
+            .ToListAsync();
+    }
+
+    private async Task ChangePage(int page)
+    {
+        Page = page;
+        await Search();
+    }
+    
+}

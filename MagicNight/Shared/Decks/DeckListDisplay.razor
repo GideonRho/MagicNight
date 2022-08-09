@@ -1,0 +1,57 @@
+@using MagicNight.Models.Database.Decks
+@using MagicNight.Models.Database.Profiles
+@using MagicNight.Services
+@inject DeckService DeckService
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    
+    <MudTable Items="@Decks" T="Deck" OnRowClick="@RowClicked" Hover="true">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                @context.Name
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+
+    <InputFile id="fileInput" OnChange="UploadDeck" hidden multiple/>
+    <MudButton HtmlTag="label"
+               Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Filled.CloudUpload"
+               for="fileInput">
+        Upload
+    </MudButton>
+
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public List<Deck> Decks { get; set; }
+    [Parameter]
+    public Profile Profile { get; set; }
+
+    private async void UploadDeck(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            var deck = await DeckService.Upload(Profile, file);
+            Decks.Add(deck);
+        }
+        StateHasChanged();
+    }
+
+    private void RowClicked(TableRowClickEventArgs<Deck> row)
+    {
+        NavigationManager.NavigateTo(Link(row.Item));
+    }
+    
+    private string Link(Deck deck) => $"Deck/{deck.Id}";
+
+}

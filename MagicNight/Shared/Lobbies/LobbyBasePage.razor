@@ -1,0 +1,66 @@
+@using MagicNight.Logic
+@using MagicNight.Models.Data
+@using MagicNight.Services
+@using MagicNight.States
+@inherits OwningComponentBase
+@implements IDisposable
+@inject StateContainer StateContainer;
+@inject LobbyService LobbyService;
+
+@code {
+
+    [Parameter]
+    public string LobbyKey { get; set; }
+    
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "u")]
+    public string[] Users { get; set; }
+
+    public virtual Lobby.EType Type => Lobby.EType.None;
+
+    protected LobbyInstance LobbyInstance => StateContainer.LobbyInstance(Type);
+    public bool IsFinished => LobbyInstance != null && LobbyInstance.Lobby.IsFinished;
+
+    public bool HasName => StateContainer.HasName;
+    public bool InLobby => StateContainer.InLobby(Type);
+    
+    private Action AsyncStateHasChanged { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        AsyncStateHasChanged = () => InvokeAsync(StateHasChanged);
+        StateContainer.OnChange += AsyncStateHasChanged;
+        
+        HandleAutoJoin();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (LobbyInstance != null)
+            LobbyInstance.OnChange += AsyncStateHasChanged;
+    }
+
+    private void HandleAutoJoin()
+    {
+        if (!string.IsNullOrEmpty(LobbyKey))
+        {
+            StateContainer.Join(LobbyService.Access(LobbyKey));
+            return;
+        }
+
+        if (Users.Length > 0)
+        {
+            StateContainer.Join(LobbyService.Host(Type, Users));
+            return;
+        }
+        
+    }
+    
+    public void Dispose()
+    {
+        if (LobbyInstance != null)
+            LobbyInstance.OnChange -= AsyncStateHasChanged;
+        StateContainer.OnChange -= AsyncStateHasChanged;
+    }
+    
+}

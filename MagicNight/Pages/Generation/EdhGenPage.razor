@@ -1,0 +1,74 @@
+@page "/EdhGen"
+@inherits OwningComponentBase
+@inject GenerateService GenerateService
+@inject CardService CardService
+@inject StateContainer StateContainer;
+@inject NavigationManager NavigationManager
+@inject IWebHostEnvironment Environment
+@inject DownloadService DownloadService;
+@using MagicNight.Services
+@using MagicNight.Models.Database.Cards
+@using MagicNight.States
+@using Microsoft.AspNetCore.Hosting
+@using MagicNight.Models.Data
+@using MagicNight.Models.Data.Generating
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+    <MudText Typo="Typo.h3" GutterBottom="true">Commander Generator</MudText>
+    <CardSlotBuilderDisplay Builder="@Builder"/>
+    <br/>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Roll">Roll</MudButton>
+    <MudButton Disabled="!IsValid" Variant="Variant.Filled" Color="Color.Primary" OnClick="@Generate">Generate</MudButton>
+    <MudButton Disabled="!CanDownload" Variant="Variant.Filled" Color="Color.Primary" Link="@FileLink" Target="_top">Download</MudButton>
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    <img src="@Commander.Card.Thumbnail">
+    <br/>
+    <CardGalleryDisplay Cards="@Cards"/>
+</MudContainer>
+
+@code {
+    
+    private List<CardRender> Cards { get; set; } = new();
+    private DeckGeneratorData Builder { get; set; } = new();
+    private string FileLink { get; set; }
+
+    private CommanderPair Commander => Builder.Commander;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Roll();
+    }
+
+    private void Generate()
+    {
+        FileLink = null;
+        Cards = GenerateService.ForBuilder(Builder)
+            .Select(c => new CardRender(c, false))
+            .ToList();
+        Save();
+    }
+
+    private async Task Save()
+    {
+        var name = await CardService.Save(Cards.Select(c => c.Card), Sideboard());
+        FileLink = DownloadService.TemporaryLink(name);
+        StateHasChanged();
+    }
+
+    private IEnumerable<Card> Sideboard()
+    {
+        yield return Commander.Card;
+        if (Commander.Partner != null)
+            yield return Commander.Partner;
+    }
+
+    private async Task Roll()
+    {
+        Builder.Commander = new CommanderPair(await GenerateService.RandomCommander());
+        Generate();
+    }
+    
+    private bool IsValid => Commander.Card != null;
+    private bool CanDownload => FileLink != null;
+    
+}

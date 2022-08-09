@@ -1,0 +1,46 @@
+@page "/MatchListDisplay"
+@using MagicNight.Models.Database.Tournaments
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudExpansionPanels>
+        <MudTable Items="Matches">
+            <RowTemplate>
+                <MudTd>@context.PlayerA.Name</MudTd>
+                <MudTd>@context.WinsA</MudTd>
+                <MudTd>@context.WinsB</MudTd>
+                <MudTd>@context.PlayerB.Name</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icon(context)" Size="Size.Small" OnClick="() => Toggle(context)"/>
+                </MudTd>
+            </RowTemplate>
+            <ChildRowContent>
+                @if (ShowDetails(context))
+                {
+                    <MatchDetailComponent Match="@context"/>
+                }
+            </ChildRowContent>
+        </MudTable>
+    </MudExpansionPanels>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public IEnumerable<Match> Matches { get; set; }
+
+    private HashSet<Match> ToggleSet { get; } = new();
+    
+    private string DisplayText(Match match)
+        => $"{match.PlayerA.Name} {match.WinsA}-{match.WinsB} {match.PlayerB.Name}";
+
+    private void Toggle(Match match)
+    {
+        if (ToggleSet.Contains(match))
+            ToggleSet.Remove(match);
+        else
+            ToggleSet.Add(match);
+    }
+    
+    private bool ShowDetails(Match match) => ToggleSet.Contains(match);
+    private string Icon(Match match) => ShowDetails(match) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add;
+
+}

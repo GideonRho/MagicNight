@@ -1,0 +1,61 @@
+@using MagicNight.Models.Database.Tournaments.Values
+@using MagicNight.Models.Database.Tournaments
+@using MagicNight.Services
+@using MagicNight.Models.Database.Profiles
+@using Microsoft.EntityFrameworkCore
+@inject TournamentService TournamentService;
+@inject ProfileService ProfileService;
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudTable Items="Tournament.Participants" Hover="true" T="TournamentParticipant">
+        <RowTemplate>
+            <MudTd>@context.Profile.Name</MudTd>
+        </RowTemplate>
+    </MudTable>
+    
+    <MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+    
+    <MudSelect @bind-Value="@ProfileSelection" T="Profile" Label="Player" Variant="Variant.Filled">
+        @foreach (var profile in Profiles)
+        {
+            <MudSelectItem Value="@profile"/>
+        }
+    </MudSelect>
+    <br/>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Add">Add</MudButton>
+    
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public Tournament Tournament { get; set; }
+
+    private Profile ProfileSelection { get; set; }
+    private List<Profile> Profiles { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh(false);
+    }
+    
+    private async Task Refresh(bool reload = true)
+    {
+        var allProfiles = await ProfileService.All().ToListAsync();
+        
+        Profiles = allProfiles
+            .Where(p => Tournament.Participants.All(tp => tp.Profile != p))
+            .ToList();
+        if (reload) StateHasChanged();
+    }
+
+    private async Task Add()
+    {
+        if (ProfileSelection == null) return;
+        if (Tournament.Participants.Any(p => p.Profile == ProfileSelection)) return;
+        ProfileSelection = null;
+        await TournamentService.AddParticipant(Tournament, ProfileSelection);
+        await Refresh();
+    }
+    
+}

@@ -1,0 +1,71 @@
+@page "/Sets"
+@using MagicNight.Models.Database.Sets
+@using MagicNight.Services
+@using Microsoft.EntityFrameworkCore
+@inject SetService SetService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-16">
+
+    <MudTable Items="Sets" Filter="Filter">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Sets</MudText>
+            <MudSpacer/>
+            <MudTextField @bind-Value="SearchString" Placeholder="Search" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" 
+                          Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.ReleaseDate.Year</MudTd>
+            <MudTd>@context.Type</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Filled"
+                           Color="@StateColor(context)"
+                           OnClick="() => ToggleCanRoll(context)">@StateText(context)</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    
+</MudContainer>
+
+@code {
+    
+    private List<Set> Sets { get; set; }
+    
+    private string SearchString { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh(false);
+    }
+
+    private async Task Refresh(bool forceUpdate = true)
+    {
+        Sets = await SetService.Query
+            .OrderByDescending(s => s.ReleaseDate)
+            .ToListAsync();
+        if (forceUpdate) StateHasChanged();
+    }
+    
+    private async Task ToggleCanRoll(Set set)
+    {
+        await SetService.SetCanRoll(set, !set.Settings.CanRoll);
+        await Refresh();
+    }
+
+    private bool Filter(Set element) => Filter(element, SearchString);
+    
+    private bool Filter(Set element, string searchString)
+    {
+        if (string.IsNullOrEmpty(searchString)) return true;
+        if (element.Settings.CanRoll && searchString.StartsWith("active", StringComparison.OrdinalIgnoreCase)) return true;
+        if (!element.Settings.CanRoll && searchString.StartsWith("inactive", StringComparison.OrdinalIgnoreCase)) return true;
+        if (element.Type.StartsWith(searchString, StringComparison.OrdinalIgnoreCase) ||
+            element.Name.StartsWith(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+    
+    private static Color StateColor(Set set) => set.Settings.CanRoll ? Color.Success : Color.Error;
+    private static string StateText(Set set) => set.Settings.CanRoll ? "Active" : "Inactive";
+    
+}
